@@ -8,7 +8,6 @@
     "icon": "./assets/icon.png",
     "scheme": "imreadyhabits",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
     "assetBundlePatterns": [
       "**/*"
     ],
@@ -40,7 +39,8 @@
           "resizeMode": "contain",
           "backgroundColor": "#0E0E12"
         }
-      ]
+      ],
+      "expo-font"
     ],
     "experiments": {
       "typedRoutes": true
