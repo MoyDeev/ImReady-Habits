@@ -9,7 +9,9 @@
     "scheme": "imreadyhabits",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.moydeev.imreadyhabits"
@@ -42,6 +44,12 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "40847f87-c53b-4d2f-9886-d378e22f633a"
+      }
     }
   }
 }
