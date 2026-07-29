@@ -22,6 +22,51 @@ export type Habit = {
 /** habitId -> { "YYYY-MM-DD": true }. Absence of a key means "not done". */
 export type CompletionMap = Record<string, Record<string, true>>;
 
+// --- Finances (Gastos section) ---------------------------------------------
+
+export type IncomeKind = 'fijo' | 'extra';
+
+/** An income entry, tagged as a fixed salary or something extra. */
+export type Income = {
+  id: string;
+  name: string;
+  amount: number;
+  kind: IncomeKind;
+  createdAt: string;
+};
+
+/** A recorded expense, drawn from a given income (`sourceId`). */
+export type Expense = {
+  id: string;
+  name: string;
+  amount: number;
+  date?: string; // optional "YYYY-MM-DD"
+  sourceId: string; // Income.id it is drawn from
+  createdAt: string;
+};
+
+/** A planned payment: which income it will come from and when it's due. */
+export type PendingExpense = {
+  id: string;
+  name: string;
+  amount: number;
+  dueDate: string; // "YYYY-MM-DD" — required
+  sourceId: string; // Income.id it will be drawn from
+  createdAt: string;
+};
+
+export type Finances = {
+  incomes: Income[];
+  expenses: Expense[];
+  pending: PendingExpense[];
+};
+
+export const emptyFinances: Finances = {
+  incomes: [],
+  expenses: [],
+  pending: [],
+};
+
 /** Full persisted app state. */
 export type AppState = {
   version: number;

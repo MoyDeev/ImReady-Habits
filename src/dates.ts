@@ -288,6 +288,12 @@ export function formatTime(t: TimeOfDay): string {
   return `${pad2(t.hour)}:${pad2(t.minute)}`;
 }
 
+/** "YYYY-MM-DD" -> "DD/MM/YYYY" for display. */
+export function formatDateKey(key: string): string {
+  const { y, m, d } = keyToParts(key);
+  return `${pad2(d)}/${pad2(m)}/${y}`;
+}
+
 // --- Migration --------------------------------------------------------------
 // Kept here (rather than storage.ts) so it stays a pure, node-testable
 // transform; storage.ts imports it.

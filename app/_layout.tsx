@@ -3,7 +3,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Stack, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useColorScheme } from 'react-native';
+import { useColorScheme, Image } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import { HabitsProvider } from '../src/HabitsContext';
 import { getTheme } from '../src/theme';
@@ -45,22 +45,41 @@ export default function RootLayout() {
           <StatusBar style={theme.dark ? 'light' : 'dark'} />
           <Stack
             screenOptions={{
+              animation: 'slide_from_right',
+              headerShadowVisible: false,
+              headerBackVisible: false,
               headerStyle: { backgroundColor: theme.bg },
               headerTintColor: theme.text,
-              headerShadowVisible: false,
               contentStyle: { backgroundColor: theme.bg },
+              headerTitle: () => (
+                <Image
+                  source={require('../assets/ImReady__logo_OF.png')}
+                  style={{ width: 28, height: 28 }}
+                  resizeMode="contain"
+                />
+              ),
             }}
           >
-            <Stack.Screen name="index" options={{ title: 'Im Ready' }} />
+            <Stack.Screen name="index" />
             <Stack.Screen
               name="habit/new"
-              options={{ presentation: 'modal', title: 'Nuevo hábito' }}
+              options={{
+                presentation: 'modal',
+                title: 'Nuevo hábito',
+                headerTitle: 'Nuevo hábito',
+              }}
             />
-            <Stack.Screen name="habit/[id]" options={{ title: '' }} />
+            <Stack.Screen name="habit/[id]" options={{ headerTitle: '' }} />
             <Stack.Screen
               name="habit/edit/[id]"
-              options={{ presentation: 'modal', title: 'Editar hábito' }}
+              options={{
+                presentation: 'modal',
+                title: 'Editar hábito',
+                headerTitle: 'Editar hábito',
+              }}
             />
+            <Stack.Screen name="expenses" />
+            <Stack.Screen name="notes" />
           </Stack>
         </HabitsProvider>
       </SafeAreaProvider>

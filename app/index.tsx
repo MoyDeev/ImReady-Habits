@@ -9,6 +9,7 @@ import {
   StyleSheet,
   ScrollView,
   ActivityIndicator,
+  Image,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -17,6 +18,8 @@ import { appliesOn, todayKey } from '../src/dates';
 import { useTheme } from '../src/useTheme';
 import { spacing, radius } from '../src/theme';
 import { HabitRow } from '../components/HabitRow';
+import { FloatingDock } from '../components/FloatingDock';
+import { SwipeNavigator } from '../components/SwipeNavigator';
 
 export default function HomeScreen() {
   const theme = useTheme();
@@ -45,10 +48,16 @@ export default function HomeScreen() {
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: theme.bg }}>
+    <SwipeNavigator nextRoute="/expenses">
+      <View style={{ flex: 1, backgroundColor: theme.bg }}>
       <ScrollView contentContainerStyle={styles.content}>
         {habits.length === 0 ? (
           <View style={styles.empty}>
+            <Image
+              source={require('../assets/ImReady__logo_OF.png')}
+              style={styles.emptyLogo}
+              resizeMode="contain"
+            />
             <Text style={[styles.emptyTitle, { color: theme.text }]}>
               Sin hábitos todavía
             </Text>
@@ -118,6 +127,8 @@ export default function HomeScreen() {
         )}
       </ScrollView>
 
+      <FloatingDock />
+
       <Pressable
         onPress={() => router.push('/habit/new')}
         style={[
@@ -128,6 +139,7 @@ export default function HomeScreen() {
         <Text style={styles.fabText}>+</Text>
       </Pressable>
     </View>
+    </SwipeNavigator>
   );
 }
 
@@ -137,10 +149,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  emptyLogo: {
+    width: 120,
+    height: 120,
+    marginBottom: spacing.md,
+    borderRadius: 24,
+  },
   content: {
     padding: spacing.lg,
     gap: spacing.md,
-    paddingBottom: 120,
+    paddingBottom: 150,
   },
   empty: {
     marginTop: spacing.xxl * 2,
