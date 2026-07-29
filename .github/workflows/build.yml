@@ -10,19 +10,30 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
 
-      - run: npm install
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
 
-      - name: Build APK with EAS
-        run: npx eas build -p android --profile preview --non-interactive
+      - name: Instalar dependencias del proyecto
+        run: npm install
+
+      - name: Instalar EAS CLI globalmente
+        run: npm install -g eas-cli
+
+      - name: Build APK locally with EAS
+        run: eas build -p android --profile preview --non-interactive --local --output=app.apk
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
       - name: Upload APK to release
         uses: softprops/action-gh-release@v2
         with:
-          files: ./*.apk
+          files: ./app.apk
