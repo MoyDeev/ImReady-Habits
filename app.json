@@ -1,5 +1,6 @@
 {
   "expo": {
+    "owner": "sistemas-kalli",
     "name": "Im Ready",
     "slug": "imready-habits",
     "version": "1.0.0",
