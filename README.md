@@ -1,5 +1,7 @@
 # Im Ready — Habits
 
+> Part of the **Sistemas-Kalli** suite of applications.
+
 A minimal, 100% local daily-habits app. No backend, no accounts, no ads, no
 analytics. Create a habit → give it a name and a time → get a daily reminder at
 that time → check it off on a GitHub-style calendar. Each habit has its own

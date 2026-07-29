@@ -3,7 +3,6 @@
 
 import React, { useState } from 'react';
 import {
-  Modal,
   View,
   Text,
   TextInput,
@@ -20,6 +19,7 @@ import type { Finances } from '../../src/types';
 import { todayKey, dayKey, formatDateKey } from '../../src/dates';
 import { useTheme } from '../../src/useTheme';
 import { spacing, radius } from '../../src/theme';
+import { BottomSheet } from '../BottomSheet';
 
 // --- Shared sheet wrapper ---------------------------------------------------
 
@@ -42,28 +42,11 @@ function FormSheet({
 }) {
   const theme = useTheme();
   return (
-    <Modal
+    <BottomSheet
       visible={visible}
-      transparent
-      animationType="slide"
-      onRequestClose={onClose}
-    >
-      <Pressable style={styles.backdrop} onPress={onClose} />
-      <View
-        style={[
-          styles.sheet,
-          { backgroundColor: theme.bg, borderColor: theme.border },
-        ]}
-      >
-        <View style={styles.sheetHeader}>
-          <Text style={[styles.sheetTitle, { color: theme.text }]}>{title}</Text>
-          <Pressable onPress={onClose} hitSlop={10}>
-            <Text style={[styles.cancel, { color: theme.textMuted }]}>
-              Cancelar
-            </Text>
-          </Pressable>
-        </View>
-        <ScrollView keyboardShouldPersistTaps="handled">{children}</ScrollView>
+      title={title}
+      onClose={onClose}
+      footer={
         <Pressable
           onPress={onSave}
           disabled={!canSave}
@@ -81,8 +64,12 @@ function FormSheet({
             {saveLabel}
           </Text>
         </Pressable>
-      </View>
-    </Modal>
+      }
+    >
+      <ScrollView style={styles.body} keyboardShouldPersistTaps="handled">
+        {children}
+      </ScrollView>
+    </BottomSheet>
   );
 }
 
@@ -228,17 +215,24 @@ export function IncomeModal({
 }: {
   visible: boolean;
   onClose: () => void;
-  onSubmit: (d: { name: string; amount: number; kind: IncomeKind }) => void;
+  onSubmit: (d: {
+    name: string;
+    amount: number;
+    kind: IncomeKind;
+    label?: string;
+  }) => void;
 }) {
   const theme = useTheme();
   const [name, setName] = useState('');
   const [amount, setAmount] = useState('');
   const [kind, setKind] = useState<IncomeKind>('fijo');
+  const [label, setLabel] = useState('');
 
   function reset() {
     setName('');
     setAmount('');
     setKind('fijo');
+    setLabel('');
   }
   function close() {
     reset();
@@ -253,7 +247,12 @@ export function IncomeModal({
       onClose={close}
       canSave={canSave}
       onSave={() => {
-        onSubmit({ name: name.trim(), amount: parseAmount(amount), kind });
+        onSubmit({
+          name: name.trim(),
+          amount: parseAmount(amount),
+          kind,
+          label: kind === 'extra' ? label.trim() || undefined : undefined,
+        });
         reset();
       }}
     >
@@ -294,6 +293,16 @@ export function IncomeModal({
           );
         })}
       </View>
+      {kind === 'extra' ? (
+        <>
+          <Label>Etiqueta (opcional)</Label>
+          <TextField
+            value={label}
+            onChangeText={setLabel}
+            placeholder="Ej. Freelance, Venta, Regalo"
+          />
+        </>
+      ) : null}
     </FormSheet>
   );
 }
@@ -453,40 +462,8 @@ export function PendingModal({
 }
 
 const styles = StyleSheet.create({
-  backdrop: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-  },
-  sheet: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    maxHeight: '88%',
-    borderTopLeftRadius: radius.lg,
-    borderTopRightRadius: radius.lg,
-    borderWidth: 1,
-    padding: spacing.lg,
-    paddingBottom: spacing.xxl,
-    gap: spacing.xs,
-  },
-  sheetHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: spacing.sm,
-  },
-  sheetTitle: {
-    fontSize: 20,
-    fontWeight: '800',
-  },
-  cancel: {
-    fontSize: 15,
-    fontWeight: '600',
+  body: {
+    flexShrink: 1,
   },
   label: {
     fontSize: 13,

@@ -1,8 +1,10 @@
 // GitHub-style calendar for a single habit: 26 weeks, Monday on top, horizontal
-// scroll. Non-scheduled days render faint but stay tappable; future days blank.
+// scroll. Non-scheduled days render faint; future days blank. Read-only: cells
+// are not tappable, and the view starts scrolled to the most recent week so the
+// current streak is visible immediately.
 
-import React from 'react';
-import { View, Text, Pressable, ScrollView, StyleSheet } from 'react-native';
+import React, { useRef } from 'react';
+import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import type { Habit, CompletionMap } from '../src/types';
 import { buildHeatmap, todayKey, WEEKDAY_LABELS } from '../src/dates';
 import { useTheme } from '../src/useTheme';
@@ -11,17 +13,17 @@ import { spacing, radius } from '../src/theme';
 type Props = {
   habit: Habit;
   completions: CompletionMap;
-  onToggleDay: (habitId: string, dayKey: string) => void;
 };
 
 const CELL = 15;
 const GAP = 3;
 const ROW_LABELS = [1, 2, 3, 4, 5, 6, 0]; // Mon..Sun for the left gutter
 
-export function Heatmap({ habit, completions, onToggleDay }: Props) {
+export function Heatmap({ habit, completions }: Props) {
   const theme = useTheme();
   const today = todayKey();
   const grid = buildHeatmap(habit, completions, today, 26);
+  const scrollRef = useRef<ScrollView>(null);
 
   return (
     <View style={styles.wrap}>
@@ -42,9 +44,13 @@ export function Heatmap({ habit, completions, onToggleDay }: Props) {
         </View>
 
         <ScrollView
+          ref={scrollRef}
           horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.grid}
+          onContentSizeChange={() =>
+            scrollRef.current?.scrollToEnd({ animated: false })
+          }
         >
           {grid.map((week, col) => (
             <View key={col} style={styles.week}>
@@ -60,9 +66,8 @@ export function Heatmap({ habit, completions, onToggleDay }: Props) {
                   opacity = cell.scheduled ? 1 : 0.4;
                 }
                 return (
-                  <Pressable
+                  <View
                     key={row}
-                    onPress={() => onToggleDay(habit.id, cell.key)}
                     style={[
                       styles.cell,
                       {

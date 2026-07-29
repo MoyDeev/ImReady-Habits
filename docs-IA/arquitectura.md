@@ -5,28 +5,34 @@
 ```
 app/                         Pantallas (expo-router, rutas por archivo)
   _layout.tsx                Stack + HabitsProvider + listener de tap de notificación
-  index.tsx                  Hábitos de hoy: progreso, check rápido, FAB
-  expenses.tsx               Gastos: ingresos / gastos / pendientes + resumen
-  notes.tsx                  Notas (placeholder)
-  todos.tsx                  Pendientes (placeholder, aún fuera del Stack)
-  habit/new.tsx              Crear hábito (modal)
+  index.tsx                  Host: pager de las 4 secciones + FloatingDock
   habit/[id].tsx             Detalle: rachas, heatmap, ajustes
   habit/edit/[id].tsx        Editar / eliminar (modal)
 
 components/
+  SectionPager.tsx           Carrusel horizontal (Reanimated + gesture-handler)
+  FloatingDock.tsx           Dock inferior: controla el pager por índice (4 ítems)
+  Fab.tsx                    FAB reutilizable (abajo-derecha, safe-area)
+  BottomSheet.tsx            Hoja inferior compartida (teclado + safe-area)
+  AddMenu.tsx                "Nube" flotante de opciones sobre el FAB (Gastos)
+  HabitModal.tsx             Crear hábito como hoja inferior (envuelve HabitForm)
   HabitRow.tsx               Fila con círculo de check + MiniWeek
   MiniWeek.tsx               Tira compacta de 7 días
   HabitForm.tsx              Formulario compartido crear/editar
-  Heatmap.tsx                Calendario estilo GitHub (scroll horizontal)
-  FloatingDock.tsx           Dock inferior: Hábitos / Gastos / Notas
-  SwipeNavigator.tsx         Navegación por gestos horizontales entre secciones
+  Heatmap.tsx                Calendario estilo GitHub (solo lectura, scroll horizontal)
   SectionPlaceholder.tsx     Placeholder para secciones aún no implementadas
+  sections/
+    HabitsSection.tsx        Panel Hábitos (progreso, lista, FAB → HabitModal)
+    ExpensesSection.tsx      Panel Gastos (resumen, pestañas, FAB → AddMenu)
+    NotesSection.tsx         Panel Notas (placeholder)
+    TodosSection.tsx         Panel Pendientes (placeholder)
   finance/
     FinanceSummary.tsx       Tarjeta de balance
-    FinanceModals.tsx        Modales de ingreso / gasto / pendiente
+    FinanceModals.tsx        Hojas de ingreso / gasto / pendiente (usan BottomSheet)
 
 src/
   HabitsContext.tsx          Estado + persistencia + agenda de recordatorios
+  SectionsContext.tsx        Índice activo + translateX del pager (Reanimated)
   usePersistentState.ts      Hook genérico de estado persistido (usado por Gastos)
   storage.ts                 AsyncStorage (clave imready-habits/state/v1) + migración
   notifications.ts           Permisos, canal Android, schedule/cancel/resync
@@ -34,6 +40,9 @@ src/
   finance.ts                 Lógica pura de dinero: formato, totales, balances
   theme.ts / useTheme.ts     Colores, spacing, claro/oscuro
   types.ts                   Tipos de dominio
+
+scripts/
+  pad-adaptive-icon.mjs      Añade margen al ícono adaptativo de Android (sharp)
 ```
 
 ## Flujo de datos
@@ -53,13 +62,29 @@ viven en [`src/finance.ts`](../src/finance.ts).
 
 ## Navegación
 
-- **expo-router** con rutas tipadas (`experiments.typedRoutes`). El Stack se define en
-  [`app/_layout.tsx`](../app/_layout.tsx); `habit/new` y `habit/edit/[id]` son modales.
+Las 4 secciones (Hábitos, Gastos, Notas, Pendientes) viven en **una sola pantalla**
+(`app/index.tsx`) como paneles de un **pager horizontal**. El detalle y la edición de
+hábito son rutas de Stack encima del host.
+
+- **Pager** ([`components/SectionPager.tsx`](../components/SectionPager.tsx)):
+  carrusel horizontal con `Gesture.Pan` (gesture-handler) + Reanimated; arrastra el
+  contenido en la dirección del gesto y hace snap al panel más cercano. El estado
+  compartido (índice + `translateX`) vive en
+  [`src/SectionsContext.tsx`](../src/SectionsContext.tsx).
 - **FloatingDock** ([`components/FloatingDock.tsx`](../components/FloatingDock.tsx)):
-  dock inferior centrado con Hábitos (`/`), Gastos (`/expenses`) y Notas (`/notes`);
-  resalta la sección activa.
-- **SwipeNavigator** ([`components/SwipeNavigator.tsx`](../components/SwipeNavigator.tsx)):
-  permite pasar entre secciones con gestos horizontales (`prevRoute`/`nextRoute`).
+  dock inferior que cambia de panel por índice (`goTo(i)`, animado) y resalta el
+  activo. Cuatro ítems: Hábitos, Gastos, Notas, Pendientes.
+- **expo-router** con rutas tipadas (`experiments.typedRoutes`): el Stack
+  ([`app/_layout.tsx`](../app/_layout.tsx)) solo declara `index`, `habit/[id]` y
+  `habit/edit/[id]` (modal).
+
+## Patrón "Agregar"
+
+Unificado en todas las secciones: **FAB** ([`components/Fab.tsx`](../components/Fab.tsx))
+abajo-derecha → **hoja inferior** ([`components/BottomSheet.tsx`](../components/BottomSheet.tsx),
+con `KeyboardAvoidingView` y safe-area). En Hábitos el FAB abre `HabitModal`
+directo; en Gastos abre `AddMenu` (nube flotante) con Ingreso/Gasto/Pendiente, y cada
+opción abre su hoja de `FinanceModals`.
 
 ## Notificaciones
 

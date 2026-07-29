@@ -1,34 +1,33 @@
-// Floating dock: a centered pill acting as the bottom navigation between the app's
-// three areas — Hábitos (checkmark), Gastos (cash), Notas (pencil). Shown on those
-// three screens; the active one is highlighted.
+// Floating dock: a centered pill acting as the bottom navigation between the
+// app's sections. Drives the section pager by index (animated) and highlights the
+// active one. Rendered once by the host, above the pager.
 
 import React from 'react';
 import { View, Pressable, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter, usePathname, type Href } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../src/useTheme';
 import { spacing, radius } from '../src/theme';
+import { useSections } from '../src/SectionsContext';
 
 type Item = {
   key: string;
   icon: keyof typeof Ionicons.glyphMap;
-  href: Href;
   label: string;
-  match: string;
+  index: number;
 };
 
 const ITEMS: Item[] = [
-  { key: 'habits', icon: 'checkmark-circle-outline', href: '/', label: 'Hábitos', match: '/' },
-  { key: 'expenses', icon: 'cash-outline', href: '/expenses', label: 'Gastos', match: '/expenses' },
-  { key: 'notes', icon: 'create-outline', href: '/notes', label: 'Notas', match: '/notes' },
+  { key: 'habits', icon: 'checkmark-circle-outline', label: 'Hábitos', index: 0 },
+  { key: 'expenses', icon: 'cash-outline', label: 'Gastos', index: 1 },
+  { key: 'notes', icon: 'create-outline', label: 'Notas', index: 2 },
+  { key: 'todos', icon: 'list-outline', label: 'Pendientes', index: 3 },
 ];
 
 export function FloatingDock() {
   const theme = useTheme();
-  const router = useRouter();
-  const pathname = usePathname();
   const insets = useSafeAreaInsets();
+  const { index, goTo } = useSections();
 
   return (
     <View
@@ -46,14 +45,14 @@ export function FloatingDock() {
         ]}
       >
         {ITEMS.map((item) => {
-          const active = pathname === item.match;
+          const active = index === item.index;
           return (
             <Pressable
               key={item.key}
               accessibilityRole="button"
               accessibilityLabel={item.label}
               accessibilityState={{ selected: active }}
-               onPress={() => router.navigate(item.href)}
+              onPress={() => goTo(item.index)}
               hitSlop={6}
               style={({ pressed }) => [
                 styles.btn,
@@ -84,7 +83,7 @@ const styles = StyleSheet.create({
   dock: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.sm,
+    gap: spacing.xs,
     borderWidth: 1,
     borderRadius: radius.pill,
     paddingHorizontal: spacing.sm,

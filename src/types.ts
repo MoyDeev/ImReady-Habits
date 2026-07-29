@@ -32,6 +32,9 @@ export type Income = {
   name: string;
   amount: number;
   kind: IncomeKind;
+  /** Optional custom label for an `extra` income (e.g. "Freelance", "Venta").
+   *  When empty, extras fall back to the generic "Extra" tag. */
+  label?: string;
   createdAt: string;
 };
 

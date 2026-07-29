@@ -11,6 +11,8 @@ import {
   Switch,
   StyleSheet,
   ScrollView,
+  type StyleProp,
+  type ViewStyle,
 } from 'react-native';
 import DateTimePicker, {
   type DateTimePickerEvent,
@@ -35,6 +37,8 @@ type Props = {
   submitLabel: string;
   notificationsAvailable: boolean;
   onSubmit: (input: HabitInput) => void;
+  /** Extra style for the scroll container (e.g. to fit inside a bottom sheet). */
+  style?: StyleProp<ViewStyle>;
 };
 
 function toDate(t: TimeOfDay): Date {
@@ -48,6 +52,7 @@ export function HabitForm({
   submitLabel,
   notificationsAvailable,
   onSubmit,
+  style,
 }: Props) {
   const theme = useTheme();
   const [name, setName] = useState(initial?.name ?? '');
@@ -134,7 +139,7 @@ export function HabitForm({
 
   return (
     <ScrollView
-      style={{ backgroundColor: theme.bg }}
+      style={[{ backgroundColor: theme.bg }, style]}
       contentContainerStyle={styles.content}
       keyboardShouldPersistTaps="handled"
     >

@@ -50,7 +50,7 @@ export default function HabitDetailScreen() {
   const router = useRouter();
   const navigation = useNavigation();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { getHabit, completions, toggleCompletion } = useHabits();
+  const { getHabit, completions } = useHabits();
   const habit = getHabit(id);
 
   useLayoutEffect(() => {
@@ -131,15 +131,10 @@ export default function HabitDetailScreen() {
           { backgroundColor: theme.card, borderColor: theme.border },
         ]}
       >
-        <Heatmap
-          habit={habit}
-          completions={completions}
-          onToggleDay={toggleCompletion}
-        />
+        <Heatmap habit={habit} completions={completions} />
       </View>
       <Text style={[styles.hint, { color: theme.textFaint }]}>
-        Toca un día para marcarlo o desmarcarlo. Los días atenuados no estaban
-        programados.
+        Los días atenuados no estaban programados.
       </Text>
     </ScrollView>
   );

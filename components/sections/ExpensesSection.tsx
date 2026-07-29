@@ -1,5 +1,6 @@
-// Gastos section: incomes (tagged fijo/extra), expenses drawn from an income,
-// and pending payments — with a balance summary. All local, all in one screen.
+// Gastos panel: incomes (fijo/extra), expenses drawn from an income, and pending
+// payments, with a balance summary. Adding uses the shared pattern: a FAB opens a
+// floating menu with the three add options, each opening its bottom sheet.
 
 import React, { useState } from 'react';
 import {
@@ -11,48 +12,51 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import type {
-  Finances,
-  Income,
-  Expense,
-  PendingExpense,
-} from '../src/types';
-import { emptyFinances } from '../src/types';
-import { usePersistentState } from '../src/usePersistentState';
-import {
-  formatMoney,
-  remainingForIncome,
-  incomeName,
-} from '../src/finance';
-import { todayKey, formatDateKey } from '../src/dates';
-import { useTheme } from '../src/useTheme';
-import { spacing, radius } from '../src/theme';
-import { FloatingDock } from '../components/FloatingDock';
-import { SwipeNavigator } from '../components/SwipeNavigator';
-import { FinanceSummary } from '../components/finance/FinanceSummary';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import type { Finances, Income, Expense, PendingExpense } from '../../src/types';
+import { emptyFinances } from '../../src/types';
+import { usePersistentState } from '../../src/usePersistentState';
+import { formatMoney, remainingForIncome, incomeName } from '../../src/finance';
+import { todayKey, formatDateKey } from '../../src/dates';
+import { useTheme } from '../../src/useTheme';
+import { spacing, radius } from '../../src/theme';
+import { FinanceSummary } from '../finance/FinanceSummary';
 import {
   IncomeModal,
   ExpenseModal,
   PendingModal,
-} from '../components/finance/FinanceModals';
+} from '../finance/FinanceModals';
+import { Fab } from '../Fab';
+import { AddMenu, type AddOption } from '../AddMenu';
 
 type Tab = 'incomes' | 'expenses' | 'pending';
+
+/** Clearance so list content never hides behind the dock / system nav. */
+const BOTTOM_CLEARANCE = 120;
+
+const ADD_OPTIONS: AddOption[] = [
+  { key: 'incomes', label: 'Ingreso', icon: 'trending-up-outline' },
+  { key: 'expenses', label: 'Gasto', icon: 'trending-down-outline' },
+  { key: 'pending', label: 'Pendiente a pagar', icon: 'time-outline' },
+];
 
 function makeId(): string {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`;
 }
 
-export default function ExpensesScreen() {
+export function ExpensesSection() {
   const theme = useTheme();
+  const insets = useSafeAreaInsets();
   const [finances, setFinances, hydrated] = usePersistentState<Finances>(
     'imready-habits/finances/v1',
     emptyFinances,
   );
   const [tab, setTab] = useState<Tab>('incomes');
   const [modal, setModal] = useState<Tab | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   // --- mutations ---
-  const addIncome = (d: Pick<Income, 'name' | 'amount' | 'kind'>) =>
+  const addIncome = (d: Pick<Income, 'name' | 'amount' | 'kind' | 'label'>) =>
     setFinances((f) => ({
       ...f,
       incomes: [
@@ -82,10 +86,12 @@ export default function ExpensesScreen() {
   const remove = (kind: Tab, id: string) =>
     setFinances((f) => ({
       ...f,
-      incomes: kind === 'incomes' ? f.incomes.filter((x) => x.id !== id) : f.incomes,
+      incomes:
+        kind === 'incomes' ? f.incomes.filter((x) => x.id !== id) : f.incomes,
       expenses:
         kind === 'expenses' ? f.expenses.filter((x) => x.id !== id) : f.expenses,
-      pending: kind === 'pending' ? f.pending.filter((x) => x.id !== id) : f.pending,
+      pending:
+        kind === 'pending' ? f.pending.filter((x) => x.id !== id) : f.pending,
     }));
 
   // Convert a pending payment into a real expense dated today.
@@ -121,12 +127,16 @@ export default function ExpensesScreen() {
   ];
 
   return (
-    <SwipeNavigator prevRoute="/" nextRoute="/notes">
-      <View style={{ flex: 1, backgroundColor: theme.bg }}>
-      <ScrollView contentContainerStyle={styles.content}>
+    <View style={{ flex: 1, backgroundColor: theme.bg }}>
+      <ScrollView
+        contentContainerStyle={[
+          styles.content,
+          { paddingBottom: insets.bottom + BOTTOM_CLEARANCE },
+        ]}
+      >
         <FinanceSummary finances={finances} />
 
-        {/* Segmented control */}
+        {/* Segmented control (view filter) */}
         <View style={[styles.tabs, { backgroundColor: theme.cardAlt }]}>
           {TABS.map((t) => {
             const on = tab === t.key;
@@ -149,21 +159,6 @@ export default function ExpensesScreen() {
           })}
         </View>
 
-        {/* Add button */}
-        <Pressable
-          onPress={() => setModal(tab)}
-          style={[styles.addBtn, { borderColor: theme.accent }]}
-        >
-          <Ionicons name="add" size={18} color={theme.accent} />
-          <Text style={[styles.addText, { color: theme.accent }]}>
-            {tab === 'incomes'
-              ? 'Agregar ingreso'
-              : tab === 'expenses'
-                ? 'Agregar gasto'
-                : 'Agregar pendiente'}
-          </Text>
-        </Pressable>
-
         {/* Lists */}
         {tab === 'incomes' &&
           (finances.incomes.length === 0 ? (
@@ -173,7 +168,7 @@ export default function ExpensesScreen() {
               <Row
                 key={inc.id}
                 title={inc.name}
-                badge={inc.kind === 'fijo' ? 'Fijo' : 'Extra'}
+                badge={inc.kind === 'fijo' ? 'Fijo' : inc.label?.trim() || 'Extra'}
                 amount={inc.amount}
                 sub={`Disponible ${formatMoney(remainingForIncome(finances, inc))}`}
                 onDelete={() => remove('incomes', inc.id)}
@@ -217,7 +212,13 @@ export default function ExpensesScreen() {
           ))}
       </ScrollView>
 
-      <FloatingDock />
+      <Fab onPress={() => setMenuOpen(true)} />
+      <AddMenu
+        visible={menuOpen}
+        options={ADD_OPTIONS}
+        onSelect={(key) => setModal(key as Tab)}
+        onClose={() => setMenuOpen(false)}
+      />
 
       <IncomeModal
         visible={modal === 'incomes'}
@@ -246,15 +247,12 @@ export default function ExpensesScreen() {
         }}
       />
     </View>
-    </SwipeNavigator>
   );
 }
 
 function Empty({ text }: { text: string }) {
   const theme = useTheme();
-  return (
-    <Text style={[styles.empty, { color: theme.textFaint }]}>{text}</Text>
-  );
+  return <Text style={[styles.empty, { color: theme.textFaint }]}>{text}</Text>;
 }
 
 function Row({
@@ -326,7 +324,6 @@ const styles = StyleSheet.create({
   content: {
     padding: spacing.lg,
     gap: spacing.md,
-    paddingBottom: 150,
   },
   tabs: {
     flexDirection: 'row',
@@ -342,20 +339,6 @@ const styles = StyleSheet.create({
   },
   tabText: {
     fontSize: 14,
-    fontWeight: '700',
-  },
-  addBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    borderWidth: 1,
-    borderStyle: 'dashed',
-    borderRadius: radius.md,
-    paddingVertical: spacing.md,
-  },
-  addText: {
-    fontSize: 15,
     fontWeight: '700',
   },
   empty: {

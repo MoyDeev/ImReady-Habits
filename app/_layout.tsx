@@ -61,14 +61,6 @@ export default function RootLayout() {
             }}
           >
             <Stack.Screen name="index" />
-            <Stack.Screen
-              name="habit/new"
-              options={{
-                presentation: 'modal',
-                title: 'Nuevo hábito',
-                headerTitle: 'Nuevo hábito',
-              }}
-            />
             <Stack.Screen name="habit/[id]" options={{ headerTitle: '' }} />
             <Stack.Screen
               name="habit/edit/[id]"
@@ -78,8 +70,6 @@ export default function RootLayout() {
                 headerTitle: 'Editar hábito',
               }}
             />
-            <Stack.Screen name="expenses" />
-            <Stack.Screen name="notes" />
           </Stack>
         </HabitsProvider>
       </SafeAreaProvider>
