@@ -15,7 +15,7 @@ jobs:
           node-version: 22
           cache: npm
 
-      - run: npm ci
+      - run: npm install
 
       - name: Build APK with EAS
         run: npx eas build -p android --profile preview --non-interactive
