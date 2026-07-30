@@ -32,11 +32,13 @@ jobs:
         run: npm install -g eas-cli
 
       - name: Build APK locally with EAS
-        run: eas build -p android --profile preview --non-interactive --local --output=app.apk
+        run: eas build -p android --profile preview --non-interactive --local --output=ImReady.apk
         env:
           EXPO_TOKEN: ${{ secrets.KALLI_BUILDER }}
 
       - name: Upload APK to release
         uses: softprops/action-gh-release@v2
+        env:
+          ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
         with:
-          files: ./app.apk
+          files: ./ImReadyHabits.apk
